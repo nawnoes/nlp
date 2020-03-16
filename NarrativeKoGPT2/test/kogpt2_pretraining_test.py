@@ -66,12 +66,24 @@ tok_path = get_tokenizer()
 model, vocab = kogpt2model, vocab_b_obj
 sentencepieceTokenizer = SentencepieceTokenizer(tok_path)
 
+
+
 sentence = "그놈이 내게 한 짓들을 다 이야기해 줬을 텐데! 그걸 다 알면서도 그런 말이 나온다는 거냐? 너도 그놈의 외모와 가식적인 다정함에 반해서, 날 배신하려는 거냐?"
 tokenized_sentence = sentencepieceTokenizer(sentence)
 print('tokenized_sentence len: {} tokens: {}' . format(len(tokenized_sentence), tokenized_sentence))
 
+
+# input_ids = torch.tensor([vocab[vocab.bos_token], ] + vocab[tokenized_sentence]).unsqueeze(0)
 input_ids = torch.tensor([vocab[vocab.bos_token], ] + vocab[tokenized_sentence]).unsqueeze(0)
+batch_data =[]
+
+for _ in range(1):
+  batch_data.append([vocab[vocab.bos_token],] + vocab[tokenized_sentence])
+
+batch_data =  torch.tensor(batch_data)
 print('input_ids {}' . format(input_ids))
+print('batch_data {}' . format(batch_data))
+
 #
 # outputs = model(input_ids, labels=input_ids)
 # loss, logits = outputs[:2]
@@ -82,7 +94,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 for epoch in range(epoch):
 
   optimizer.zero_grad()
-  outputs = model(input_ids, labels=input_ids)
+  outputs = model(batch_data, labels=batch_data)
   loss, logits = outputs[:2]
   loss.backward()
   optimizer.step()
