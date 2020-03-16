@@ -1,4 +1,10 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 from NarrativeKoGPT2.util.data import sentencePieceTokenizer, toString
+from torch.utils.data import TensorDataset # 텐서데이터셋
+from torch.utils.data import Dataset,DataLoader # 데이터로더
 
 def makeDataUnderMaxTokenLen():
   # tokenizer
@@ -48,4 +54,10 @@ def makeDataUnderMaxTokenLen():
 
 def getBatchData(batch_size, file_path, tokenizer, vocab):
 
-  batch_data=[]
+  file = open(file_path, 'r', encoding='utf-8')
+  while True:
+    line = file.readline()
+    tokenized_line = tokenizer(line[:-1]) # 마지막 개행 문자 제거
+    [vocab[vocab.bos_token], ] + vocab[tokenized_line]
+    if not line:
+      break
