@@ -9,6 +9,7 @@ from NarrativeKoGPT2.kogpt2.utils import download, tokenizer, get_tokenizer
 from gluonnlp.data import SentencepieceTokenizer
 import gluonnlp
 import numpy as np
+import os
 
 
 def sentencePieceTokenizer():
@@ -65,6 +66,7 @@ class NovelDataset(Dataset):
       index_of_words = [vocab[vocab.bos_token],] + vocab[toeknized_line]+ [vocab[vocab.eos_token]]
       # print(np.shape(index_of_words))
       self.data.append(index_of_words)
+
     print(np.shape(self.data))
 
     file.close()
@@ -73,36 +75,38 @@ class NovelDataset(Dataset):
     return len(self.data)
   def __getitem__(self,index):
     item = self.data[index]
-    print(item)
+    # print(item)
     return item
-
-cachedir='~/kogpt2/'
-file_path = '/Users/a60058238/Desktop/dev/workspace/nlp/NarrativeKoGPT2/data/backmyo_novel_1/untokenized_bm_data.txt'
-
-vocab_info = tokenizer
-vocab_path = download(vocab_info['url'],
-                       vocab_info['fname'],
-                       vocab_info['chksum'],
-                       cachedir=cachedir)
-vocab = gluonnlp.vocab.BERTVocab.from_sentencepiece(vocab_path,
-                                                     mask_token=None,
-                                                     sep_token=None,
-                                                     cls_token=None,
-                                                     unknown_token='<unk>',
-                                                     padding_token='<pad>',
-                                                     bos_token='<s>',
-                                                     eos_token='</s>')
-tok_path = get_tokenizer()
-sentencepieceTokenizer = SentencepieceTokenizer(tok_path)
-
-novel_dataset = NovelDataset(file_path, vocab,sentencepieceTokenizer)
-
-novel_data_loader = DataLoader(novel_dataset, batch_size=24, shuffle=True)
-
-count = 0
-for data in novel_data_loader:
-    if count == 0:
-      # print('No. %s ' %(count) +' data {}'.format(data))
-      for d in data:
-        print(d)
-    count = count+1
+#
+# cachedir='~/kogpt2/'
+# print(os.getcwd())
+# os.chdir("../")
+# file_path = './data/backmyo_novel_1/untokenized_bm_data.txt'
+#
+# vocab_info = tokenizer
+# vocab_path = download(vocab_info['url'],
+#                        vocab_info['fname'],
+#                        vocab_info['chksum'],
+#                        cachedir=cachedir)
+# vocab = gluonnlp.vocab.BERTVocab.from_sentencepiece(vocab_path,
+#                                                      mask_token=None,
+#                                                      sep_token=None,
+#                                                      cls_token=None,
+#                                                      unknown_token='<unk>',
+#                                                      padding_token='<pad>',
+#                                                      bos_token='<s>',
+#                                                      eos_token='</s>')
+# tok_path = get_tokenizer()
+# sentencepieceTokenizer = SentencepieceTokenizer(tok_path)
+#
+# novel_dataset = NovelDataset(file_path, vocab,sentencepieceTokenizer)
+#
+# novel_data_loader = DataLoader(novel_dataset, batch_size=128, shuffle=True)
+#
+# count = 0
+# for data in novel_data_loader:
+#     if count == 0:
+#       # print('No. %s ' %(count) +' data {}'.format(data))
+#       for d in data:
+#         print(d)
+#     count = count+1
