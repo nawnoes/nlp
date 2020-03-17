@@ -8,6 +8,7 @@ from torch.utils.data import Dataset,DataLoader # 데이터로더
 from NarrativeKoGPT2.kogpt2.utils import download, tokenizer, get_tokenizer
 from gluonnlp.data import SentencepieceTokenizer
 import gluonnlp
+import numpy as np
 
 
 def sentencePieceTokenizer():
@@ -62,14 +63,18 @@ class NovelDataset(Dataset):
         break
       toeknized_line = tokenizer(line[:-1])
       index_of_words = [vocab[vocab.bos_token],] + vocab[toeknized_line]+ [vocab[vocab.eos_token]]
-      # print(index_of_words)
+      # print(np.shape(index_of_words))
       self.data.append(index_of_words)
+    print(np.shape(self.data))
+
     file.close()
 
   def __len__(self):
     return len(self.data)
   def __getitem__(self,index):
-    return self.data[0][index]
+    item = self.data[index]
+    print(item)
+    return item
 
 cachedir='~/kogpt2/'
 file_path = '/Users/a60058238/Desktop/dev/workspace/nlp/NarrativeKoGPT2/data/backmyo_novel_1/untokenized_bm_data.txt'
