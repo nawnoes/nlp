@@ -1,11 +1,9 @@
+import os
+import random
 import torch
+from torch.utils.data import DataLoader # 데이터로더
 from gluonnlp.data import SentencepieceTokenizer
 from NarrativeKoGPT2.kogpt2.utils import get_tokenizer
-from torch.utils.data import DataLoader # 데이터로더
-import os
-
-import random
-
 from NarrativeKoGPT2.kogpt2.utils import download, tokenizer
 from NarrativeKoGPT2.model.torch_gpt2 import GPT2Config, GPT2LMHeadModel
 from NarrativeKoGPT2.util.data import NovelDataset
@@ -64,6 +62,7 @@ vocab_b_obj = gluonnlp.vocab.BERTVocab.from_sentencepiece(vocab_path,
                                                      padding_token='<pad>',
                                                      bos_token='<s>',
                                                      eos_token='</s>')
+
 # return kogpt2model, vocab_b_obj
 ##############################################################################
 tok_path = get_tokenizer()
