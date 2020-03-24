@@ -3,12 +3,12 @@ import random
 import torch
 from torch.utils.data import DataLoader # 데이터로더
 from gluonnlp.data import SentencepieceTokenizer
+
 from NarrativeKoGPT2.kogpt2.utils import get_tokenizer
 from NarrativeKoGPT2.kogpt2.utils import download, tokenizer
 from NarrativeKoGPT2.model.torch_gpt2 import GPT2Config, GPT2LMHeadModel
 from NarrativeKoGPT2.util.data import NovelDataset
 import gluonnlp
-from tqdm import tqdm
 
 pytorch_kogpt2 = {
     'url':
@@ -28,7 +28,6 @@ kogpt2_config = {
 }
 ctx='cpu'
 cachedir='~/kogpt2/'
-save_path = './checkpoint/'
 epoch = 200
 
 # download model
@@ -64,7 +63,6 @@ vocab_b_obj = gluonnlp.vocab.BERTVocab.from_sentencepiece(vocab_path,
                                                      padding_token='<pad>',
                                                      bos_token='<s>',
                                                      eos_token='</s>')
-
 # return kogpt2model, vocab_b_obj
 ##############################################################################
 tok_path = get_tokenizer()
@@ -73,7 +71,7 @@ sentencepieceTokenizer = SentencepieceTokenizer(tok_path)
 
 os.chdir("../")
 data_file_path = './data/backmyo_novel_1/untokenized_bm_data.txt'
-batch_size = 4
+batch_size = 8
 novel_dataset = NovelDataset(data_file_path, vocab,sentencepieceTokenizer)
 novel_data_loader = DataLoader(novel_dataset, batch_size=batch_size, shuffle=True)
 
@@ -103,32 +101,20 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 for epoch in range(epoch):
   count = 0
-  pbar = tqdm(total=10)
   for data in novel_data_loader:
     optimizer.zero_grad()
     # train_data = torch.tensor([data])
     data = torch.stack(data) # list of Tensor로 구성되어 있기 때문에 list를 stack을 통해 변환해준다.
+    print(data.shape)
 
     data= data.transpose(1,0)
-    # print('transposed data shape: {} data length: {}'.format(data.shape, len(data)))
+    print(data.shape)
+
     outputs = model(data, labels=data)
     loss, logits = outputs[:2]
     loss.backward()
     optimizer.step()
     if count %10 ==0:
       print('epoch no.{} train no.{}  loss = {}' . format(epoch, count+1, loss))
-      pbar = tqdm(total=10)
-
-      # torch.save(model,save_path+'checkpoint_{}_{}.tar'.format(epoch,count))
-      # 추론 및 학습 재개를 위한 일반 체크포인트 저장하기
-      torch.save({
-        'epoch': epoch,
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'loss':loss
-      }, save_path+'checkpoint_{}.tar'.format(epoch))
-
-    pbar.update(1)
     count += 1
-
     # print('logits {}' . format(logits[0]))
