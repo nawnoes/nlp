@@ -73,7 +73,7 @@ sentencepieceTokenizer = SentencepieceTokenizer(tok_path)
 
 os.chdir("../")
 data_file_path = './data/backmyo_novel_1/untokenized_bm_data.txt'
-batch_size = 2
+batch_size = 4
 novel_dataset = NovelDataset(data_file_path, vocab,sentencepieceTokenizer)
 novel_data_loader = DataLoader(novel_dataset, batch_size=batch_size, shuffle=True)
 
@@ -117,6 +117,7 @@ for epoch in range(epoch):
     optimizer.step()
     if count %10 ==0:
       print('epoch no.{} train no.{}  loss = {}' . format(epoch, count+1, loss))
+      pbar = tqdm(total=10)
 
       # torch.save(model,save_path+'checkpoint_{}_{}.tar'.format(epoch,count))
       # 추론 및 학습 재개를 위한 일반 체크포인트 저장하기
@@ -126,7 +127,6 @@ for epoch in range(epoch):
         'optimizer_state_dict': optimizer.state_dict(),
         'loss':loss
       }, save_path+'checkpoint_{}.tar'.format(epoch))
-      pbar.reset()
 
     pbar.update(1)
     count += 1
