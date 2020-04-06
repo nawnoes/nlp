@@ -35,7 +35,7 @@ def makeDataUnderMaxTokenLen():
     # input data can get 1024 token
     # but we need to use BOS and EOS token
     if data_length+len(tokenized_line)+2 >= 1022: # bos와 eos 토큰 갯수 고려 +2
-      untokenized_file.write(+untokenized+'\n')
+      untokenized_file.write(untokenized+'\n')
       tokenized_file.write(tokenized+'\n')
 
       untokenized = ""
