@@ -34,18 +34,18 @@ def makeDataUnderMaxTokenLen():
     # Data length for writing has to under 1022
     # input data can get 1024 token
     # but we need to use BOS and EOS token
-    if data_length+len(tokenized_line) >= 1022:
-      untokenized_file.write(untokenized+'\n')
+    if data_length+len(tokenized_line)+2 >= 1022: # bos와 eos 토큰 갯수 고려 +2
+      untokenized_file.write(+untokenized+'\n')
       tokenized_file.write(tokenized+'\n')
 
       untokenized = ""
       tokenized = ""
       data_length = 0
 
-    untokenized = untokenized + line[:-1]
-    tokenized = tokenized + toString(tokenized_line)
+    untokenized = untokenized + "<s>"+line[:-1] +"</s>"
+    tokenized = tokenized + "<s>" + toString(tokenized_line) + "</s>"
 
-    data_length = data_length+len(tokenized_line)
+    data_length = data_length+len(tokenized_line) +2 # bos와 eos 토큰 갯수 고려 +2
 
   file.close()
   untokenized_file.close()
@@ -61,3 +61,7 @@ def getBatchData(batch_size, file_path, tokenizer, vocab):
     [vocab[vocab.bos_token], ] + vocab[tokenized_line]
     if not line:
       break
+
+if __name__ == "__main__":
+    # execute only if run as a script
+    makeDataUnderMaxTokenLen()
