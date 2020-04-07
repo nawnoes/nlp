@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torch.utils.data import TensorDataset # 텐서데이터셋
 from torch.utils.data import Dataset,DataLoader # 데이터로더
 
-from NarrativeKoGPT2.kogpt2.utils import download, tokenizer, get_tokenizer
+from kogpt2.utils import download, tokenizer, get_tokenizer
 from gluonnlp.data import SentencepieceTokenizer
 import gluonnlp
 import numpy as np
