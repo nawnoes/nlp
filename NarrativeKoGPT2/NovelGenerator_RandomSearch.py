@@ -67,16 +67,12 @@ model, vocab = kogpt2model, vocab_b_obj
 tok = SentencepieceTokenizer(tok_path)
 
 ### 5. Text Generation
-sent =''
+sent = input('입력...: ')
+
 while 1:
-
-  tmp_sent = input('다음...: ')
-  sent = sent+tmp_sent
-
   toked = tok(sent)
   count = 0
-  generated_text =''
-  input_size = 50
+  input_size = 100
 
   if len(toked) >1022:
     break
@@ -85,29 +81,21 @@ while 1:
     input_ids = torch.tensor([vocab[vocab.bos_token],]  + vocab[toked]).unsqueeze(0)
     predicts = model(input_ids)
     pred = predicts[0]
-    # print('predicts:', torch.argmax(pred, axis=-1).squeeze())
-    gen = vocab.to_tokens(torch.argmax(pred, axis=-1).squeeze().tolist())[-1]
 
-    search.randomSearch(pred, 5, vocab)
-    if gen == '</s>':
-      print('to_tokens:',vocab.to_tokens(torch.argmax(pred, axis=-1).squeeze().tolist()))
+    # 상위 k개 단어중 랜덤으로 문장 생성
+    # k =10
+    # predict, k, vocab
+    gen = search.randomSearch(pred, 10, vocab)
+
+    # if gen == '</s>':
+    #   print('to_tokens:',vocab.to_tokens(torch.argmax(pred, axis=-1).squeeze().tolist()))
     if gen == '.' or count>input_size:
       sent += gen.replace('▁', ' ')
-      generated_text += gen.replace('▁', ' ')
-      sent += '\n'
-      generated_text += '\n'
       toked = tok(sent)
       count =0
       break
-      # print('to_tokens:',vocab.to_tokens(torch.argmax(pred, axis=-1).squeeze().tolist()))
-    # if count >= input_size:
-    #   break
     sent += gen.replace('▁', ' ')
-    generated_text += gen.replace('▁', ' ')
-    # print(generated_text)
-
     toked = tok(sent)
     count += 1
-  print(generated_text)
-  generated_text=''
+  print(sent)
 print(sent)
