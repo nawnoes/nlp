@@ -14,7 +14,7 @@ def randomSearch(predict, k, vocab):
 
   for i in range(len(indexs)):
     gen.append((vocab.to_tokens(indexs[i]),probs[i]))
-  print('topk word and value: ', gen)
+  # print('topk word and value: ', gen)
 
   rand_num = random.randint(0,k-1)
   gen_word = vocab.to_tokens(indexs[rand_num])

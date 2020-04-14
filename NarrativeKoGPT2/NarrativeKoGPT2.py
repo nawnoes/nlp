@@ -1,13 +1,17 @@
 import os
+import sys
+sys.path.append('/Users/a60058238/Desktop/dev/workspace/nlp/')
+
+
 import random
 import torch
 from torch.utils.data import DataLoader # 데이터로더
 from gluonnlp.data import SentencepieceTokenizer
 
-from NarrativeKoGPT2.kogpt2.utils import get_tokenizer
-from NarrativeKoGPT2.kogpt2.utils import download, tokenizer
-from NarrativeKoGPT2.model.torch_gpt2 import GPT2Config, GPT2LMHeadModel
-from NarrativeKoGPT2.util.data import NovelDataset
+from kogpt2.utils import get_tokenizer
+from kogpt2.utils import download, tokenizer
+from model.torch_gpt2 import GPT2Config, GPT2LMHeadModel
+from util.data import NovelDataset
 import gluonnlp
 
 pytorch_kogpt2 = {
@@ -70,7 +74,7 @@ model, vocab = kogpt2model, vocab_b_obj
 sentencepieceTokenizer = SentencepieceTokenizer(tok_path)
 
 os.chdir("../")
-data_file_path = './data/backmyo_novel_1/untokenized_bm_data.txt'
+data_file_path = '/Users/a60058238/Desktop/dev/workspace/nlp/NarrativeKoGPT2/data/backmyo_novel_1/untokenized_bm_data.txt'
 batch_size = 8
 novel_dataset = NovelDataset(data_file_path, vocab,sentencepieceTokenizer)
 novel_data_loader = DataLoader(novel_dataset, batch_size=batch_size, shuffle=True)

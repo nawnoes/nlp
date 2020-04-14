@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torch.utils.data import TensorDataset # 텐서데이터셋
 from torch.utils.data import Dataset,DataLoader # 데이터로더
 
-from kogpt2.utils import download, tokenizer, get_tokenizer
+from NarrativeKoGPT2.kogpt2.utils import download, tokenizer, get_tokenizer
 from gluonnlp.data import SentencepieceTokenizer
 import gluonnlp
 import numpy as np
@@ -63,11 +63,11 @@ class NovelDataset(Dataset):
       if not line:
         break
       toeknized_line = tokenizer(line[:-1])
-      index_of_words = [vocab[vocab.bos_token],] + vocab[toeknized_line]+ [vocab[vocab.eos_token]]
+      index_of_words = vocab[toeknized_line]
       # print(np.shape(index_of_words))
       self.data.append(index_of_words)
 
-    print(np.shape(self.data))
+    # print(np.shape(self.data))
 
     file.close()
 
