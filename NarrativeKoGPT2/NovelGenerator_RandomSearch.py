@@ -5,7 +5,7 @@ from gluonnlp.data import SentencepieceTokenizer
 from kogpt2.utils import get_tokenizer
 from kogpt2.utils import download, tokenizer
 from model.torch_gpt2 import GPT2Config, GPT2LMHeadModel
-from util.data import NovelDataset
+# from util.data import NovelDataset
 import gluonnlp
 import search
 
@@ -14,7 +14,9 @@ ctx= 'cpu'#'cuda' #'cpu' #학습 Device CPU or GPU. colab의 경우 GPU 사용
 cachedir='~/kogpt2/' # KoGPT-2 모델 다운로드 경로
 epoch =200  # 학습 epoch
 save_path = './checkpoint'
-load_path = './checkpoint/checkpoint_0.tar'
+load_path = 'checkpoint/checkpoint_0_epoch_134.tar'
+load_path_fairy_tale = 'checkpoint/fairy_tale_checkpoint_epoch_98.tar'
+
 #use_cuda = True # Colab내 GPU 사용을 위한 값
 
 pytorch_kogpt2 = {
@@ -46,7 +48,7 @@ vocab_path = download(vocab_info['url'],
 # Device 설정
 device = torch.device(ctx)
 # 저장한 Checkpoint 불러오기
-checkpoint = torch.load(load_path, map_location=device)
+checkpoint = torch.load(load_path_fairy_tale, map_location=device)
 
 # KoGPT-2 언어 모델 학습을 위한 GPT2LMHeadModel 선언
 kogpt2model = GPT2LMHeadModel(config=GPT2Config.from_dict(kogpt2_config))
@@ -85,7 +87,7 @@ while 1:
     # 상위 k개 단어중 랜덤으로 문장 생성
     # k =10
     # predict, k, vocab
-    gen = search.randomSearch(pred, 20, vocab)
+    gen = search.randomSearch(pred, 12, vocab)
 
     # if gen == '</s>':
     #   print('to_tokens:',vocab.to_tokens(torch.argmax(pred, axis=-1).squeeze().tolist()))

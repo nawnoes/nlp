@@ -62,7 +62,8 @@ class NovelDataset(Dataset):
       line = file.readline()
       if not line:
         break
-      toeknized_line = tokenizer(line[:-1])
+      tmp_line = line[:-1]
+      toeknized_line = tokenizer(tmp_line)
       index_of_words = vocab[toeknized_line]
       # print(np.shape(index_of_words))
       self.data.append(index_of_words)

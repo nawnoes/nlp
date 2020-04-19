@@ -36,6 +36,25 @@ def saveMergedFile(merged_file_name, file_list,path):
   save_file.close()
   return
 
+def txt2euc_kr(txt_path, tran_txt_parh):
+  txt_path = open(txt_path, 'r',encoding='euc-kr')
+  tran_txt_parh = open(tran_txt_parh, 'w', encoding='utf-8')
+
+  while True:
+    try:
+      line = txt_path.readline()
+      tran_txt_parh.write(line)
+    except Exception as ex:
+      print(ex)
+    # save_file.write(line)
+    if not line: break
+
+  txt_path.close()
+  tran_txt_parh.close()
+
+  return
+
+
 def removeFirstSpace():
   file = open('../data/backmyo_novel_1/merged_bm_novel_utf8.txt', 'r', encoding='utf-8')
   file2 = open('../data/backmyo_novel_1/prerpcessed_bm_novel_utf8_.txt', 'w', encoding='utf-8')
@@ -53,18 +72,8 @@ def removeFirstSpace():
   file2.close()
   return
 
-
-file = open('../data/backmyo_novel_1/prerpcessed_bm_novel_utf8_3.txt', 'r', encoding='utf-8')
-file2 = open('../data/backmyo_novel_1/prerpcessed_bm_novel_utf8_4.txt', 'w', encoding='utf-8')
-while True:
-  line= file.readline()
-
-  if not line: break
-  tmp_str = line.replace("                   ¢Ü             ¢Ü             ¢Ü",'')
-  file2.write(tmp_str)
-file.close()
-file2.close()
-
+if __name__ == "__main__":
+  txt2euc_kr('/Users/a60058238/Desktop/dev/workspace/nlp/Data/fairy_tale.txt', '/Users/a60058238/Desktop/dev/workspace/nlp/Data/fairy_tale_utf-8.txt')
 
 
 
