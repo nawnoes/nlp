@@ -1,3 +1,5 @@
+# should fit in ~ 5gb - 8k tokens
+
 import torch
 from Reformer.reformer_pytorch import ReformerLM
 
@@ -30,8 +32,5 @@ model = ReformerLM(
     use_full_attn = False    # only turn on this flag to override and turn on full attention for all sequence lengths. for comparison with LSH to show that it is working
 )
 
-x = torch.randint(0, 20000, (1, 8192)).long()
+x = torch.randint(0, 20000, (1, 8192)).long().cuda()
 y = model(x) # (1, 8192, 20000)
-
-print('x: ',x)
-print('y: ',y)
