@@ -87,7 +87,9 @@ while 1:
     # 상위 k개 단어중 랜덤으로 문장 생성
     # k =10
     # predict, k, vocab
-    gen = search.randomSearch(pred, 12, vocab)
+    gen2 = search.randomSearch(pred, 12, vocab)
+    last_pred = pred.squeeze()[-1]
+    gen = search.top_p(last_pred, vocab,0.85)
 
     # if gen == '</s>':
     #   print('to_tokens:',vocab.to_tokens(torch.argmax(pred, axis=-1).squeeze().tolist()))
