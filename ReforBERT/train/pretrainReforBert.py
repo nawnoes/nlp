@@ -20,10 +20,6 @@ from ReforBERT.reformer import Reformer, ReformerLM
 
 
 
-
-
-
-
 if __name__=='__main__':
   # 데이터 셋
   data_path = '/Users/a60058238/Desktop/dev/wokspace/nlp/Data/kowiki'
