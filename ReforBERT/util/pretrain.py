@@ -7,7 +7,7 @@ from gluonnlp.data import BERTSPTokenizer
 from ReforBERT.util.vocab import koBertVocab
 
 
-
+# Reformer pytorch 오리지널 mask token 사용.
 def orgin_mask_tokens(tokenizer, inputs: torch.Tensor, mlm_probability=0.15, pad=True):
   """ Prepare masked tokens inputs/labels for masked language modeling: 80% MASK, 10% random, 10% original. """
   """ 
@@ -45,7 +45,7 @@ def orgin_mask_tokens(tokenizer, inputs: torch.Tensor, mlm_probability=0.15, pad
   inputs[indices_random] = random_words[indices_random]
 
   if pad:
-    input_pads = tokenizer.max_len - inputs.shape[-1] # 인풋의 패딩 갯수 계산
+    input_pads = tokenizer.max_len - inuts.shape[-1] # 인풋의 패딩 갯수 계산
     label_pads = tokenizer.max_len - labels.shape[-1] # 라벨의 패딩 갯수 계산
 
     inputs = F.pad(inputs, pad=(0, input_pads), value=tokenizer.pad_token_id)
@@ -55,6 +55,7 @@ def orgin_mask_tokens(tokenizer, inputs: torch.Tensor, mlm_probability=0.15, pad
   return inputs, labels
 
 
+# kobert에서 사용하는 tokenizer로 mask_token 구현
 def kobert_mask_tokens(tokenizer, inputs: torch.Tensor, mlm_probability=0.15, pad=True):
   """ Prepare masked tokens inputs/labels for masked language modeling: 80% MASK, 10% random, 10% original. """
   """ 
@@ -127,7 +128,7 @@ if __name__=='__main__':
 
 
 
-  inputs, labels = mask_tokens(tokenizer,tok.unsqueeze(0), pad=True)
+  inputs, labels = orgin_mask_tokens(tokenizer,tok.unsqueeze(0), pad=True)
   # print('inputs: ',inputs)
   # print('label: ',labels)
 
