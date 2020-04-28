@@ -45,7 +45,7 @@ def orgin_mask_tokens(tokenizer, inputs: torch.Tensor, mlm_probability=0.15, pad
   inputs[indices_random] = random_words[indices_random]
 
   if pad:
-    input_pads = tokenizer.max_len - inuts.shape[-1] # 인풋의 패딩 갯수 계산
+    input_pads = tokenizer.max_len - inputs.shape[-1] # 인풋의 패딩 갯수 계산
     label_pads = tokenizer.max_len - labels.shape[-1] # 라벨의 패딩 갯수 계산
 
     inputs = F.pad(inputs, pad=(0, input_pads), value=tokenizer.pad_token_id)
@@ -53,6 +53,22 @@ def orgin_mask_tokens(tokenizer, inputs: torch.Tensor, mlm_probability=0.15, pad
 
   # The rest of the time (10% of the time) we keep the masked input tokens unchanged
   return inputs, labels
+
+def mask_special_tokens(tokenizer, str):
+  """
+  tokenizer내 special 토큰들에 대해 input을 마스킹
+  tokenizer는 BERTSPTokenizer 사용.
+
+  input은 torch tensor
+  """
+  vocab = tokenizer.vocab # 토크나이저의 사
+  special_tokens = vocab.reserved_tokens # 스페셜 토큰 목록
+  special_token_indices =vocab.to_indices(special_tokens) #스페셜 토큰을 index로 변환
+
+  tokens =str.squeeze(0).tolist()
+  result = [[int(val in special_token_indices) for val in tokens]]
+
+  return result
 
 
 # kobert에서 사용하는 tokenizer로 mask_token 구현
@@ -71,9 +87,7 @@ def kobert_mask_tokens(tokenizer, inputs: torch.Tensor, mlm_probability=0.15, pa
   probability_matrix = torch.full(labels.shape, mlm_probability)
 
   # sentencepiece 토크나이저에서
-  special_tokens_mask = [
-    tokenizer.get_special_tokens_mask(val, already_has_special_tokens=True) for val in labels.tolist()
-  ]
+  special_tokens_mask = mask_special_tokens(tokenizer,inputs)
   print(special_tokens_mask)
 
   probability_matrix.masked_fill_(torch.tensor(special_tokens_mask, dtype=torch.bool), value=0.0)
@@ -112,23 +126,25 @@ if __name__=='__main__':
   bertTokenizer =BERTSPTokenizer(tok_path, bertVocab, lower=False)
 
   tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-  test_ko_str = '오늘은 날이 매우 맑은 날로, 사람들이 밖에 나갈 준비를 하고 있다.'
+  test_ko_str = '[CLS] 오늘은 날이 매우 맑은 날 [SEP]'
   test = 'Hello, my dog is cute'
 
   tok = tokenizer.encode(test, max_length=tokenizer.max_len, add_special_tokens=True)
   print('tok: ',tok)
   tok = torch.tensor(tok, dtype=torch.long)
 
-  tok1 = sentencepieceTokenizer(test_ko_str)
-  tok1 =bertVocab(tok1)
+  tok12 = sentencepieceTokenizer(test_ko_str)
+  tok1 =bertVocab(tok12)
   print('tok1: ',tok1)
   # print('tok1 index: ',bertVocab(tok1))
 
   tok1 = torch.tensor(tok1, dtype=torch.long)
 
+  decode_input = tokenizer.decode(tok)
+  print('decode_input: ',decode_input)
 
-
-  inputs, labels = orgin_mask_tokens(tokenizer,tok.unsqueeze(0), pad=True)
+  # inputs, labels = orgin_mask_tokens(tokenizer,tok.unsqueeze(0), pad=True)
+  inputs, labels = kobert_mask_tokens(bertTokenizer, tok1.unsqueeze(0), pad=True)
   # print('inputs: ',inputs)
   # print('label: ',labels)
 
