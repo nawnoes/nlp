@@ -85,7 +85,7 @@ def add_special_tokens(tokenizer, token_indices):
 
 
 # kobert에서 사용하는 tokenizer로 mask_token 구현
-def kobert_mask_tokens(tokenizer, inputs: torch.Tensor, mlm_probability=0.15, pad=True):
+def kobert_mask_tokens(tokenizer, inputs: torch.Tensor, max_len = 512, mlm_probability=0.15, pad=True):
   """ Prepare masked tokens inputs/labels for masked language modeling: 80% MASK, 10% random, 10% original. """
   """ 
   Masked Language Model을 위한 마스킹데이터 생성
@@ -97,7 +97,8 @@ def kobert_mask_tokens(tokenizer, inputs: torch.Tensor, mlm_probability=0.15, pa
   labels = inputs.clone()
   # 사전
   vocab = tokenizer.vocab
-
+  padding_token_id = vocab.to_indices(vocab.padding_token)
+  unknown_token_id = vocab.to_indices(vocab.unknown_token)
   # mlm_probability defaults to 0.15 in Bert
   probability_matrix = torch.full(labels.shape, mlm_probability)
 
@@ -107,10 +108,13 @@ def kobert_mask_tokens(tokenizer, inputs: torch.Tensor, mlm_probability=0.15, pa
 
   probability_matrix.masked_fill_(torch.tensor(special_tokens_mask, dtype=torch.bool), value=0.0)
   if vocab.padding_token is not None:
-    padding_mask = labels.eq(vocab.to_indices(vocab.padding_token))
+    padding_mask = labels.eq(padding_token_id)
     probability_matrix.masked_fill_(padding_mask, value=0.0)
+  # 마스크할 부분을 베르누이 함수를 통해 True로 설
   masked_indices = torch.bernoulli(probability_matrix).bool()
-  labels[~masked_indices] = -100  # We only compute loss on masked tokens
+
+  #mask가 되어있지 않은 곳에 [UNK] 토큰 삽입
+  labels[~masked_indices] =  unknown_token_id # We only compute loss on masked tokens
 
   # 80% of the time, we replace masked input tokens with tokenizer.mask_token ([MASK])
   indices_replaced = torch.bernoulli(torch.full(labels.shape, 0.8)).bool() & masked_indices
@@ -118,15 +122,15 @@ def kobert_mask_tokens(tokenizer, inputs: torch.Tensor, mlm_probability=0.15, pa
 
   # 10% of the time, we replace masked input tokens with random word
   indices_random = torch.bernoulli(torch.full(labels.shape, 0.5)).bool() & masked_indices & ~indices_replaced
-  random_words = torch.randint(len(tokenizer), labels.shape, dtype=torch.long)
+  random_words = torch.randint(len(vocab), labels.shape, dtype=torch.long)
   inputs[indices_random] = random_words[indices_random]
 
   if pad:
-    input_pads = tokenizer.max_len - inputs.shape[-1] # 인풋의 패딩 갯수 계산
-    label_pads = tokenizer.max_len - labels.shape[-1] # 라벨의 패딩 갯수 계산
+    input_pads = max_len - inputs.shape[-1] # 인풋의 패딩 갯수 계산
+    label_pads = max_len - labels.shape[-1] # 라벨의 패딩 갯수 계산
 
-    inputs = F.pad(inputs, pad=(0, input_pads), value=tokenizer.pad_token_id)
-    labels = F.pad(labels, pad=(0, label_pads), value=tokenizer.pad_token_id)
+    inputs = F.pad(inputs, pad=(0, input_pads), value=padding_token_id)
+    labels = F.pad(labels, pad=(0, label_pads), value=padding_token_id)
 
   # The rest of the time (10% of the time) we keep the masked input tokens unchanged
   return inputs, labels
@@ -141,30 +145,17 @@ if __name__=='__main__':
   bertTokenizer =BERTSPTokenizer(tok_path, bertVocab, lower=False)
 
   tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-  test_ko_str = '오늘은 날이 매우 맑은 날'
+  test_ko_str = '오늘은 날이 매우 좋은 날'
   test = 'Hello, my dog is cute'
 
-  tok = tokenizer.encode(test, max_length=tokenizer.max_len, add_special_tokens=True)
-  print('tok: ',tok)
-  tok = torch.tensor(tok, dtype=torch.long)
+  tokens = sentencepieceTokenizer(test_ko_str)
+  tokens_index =bertVocab(tokens)
+  added_specialtokens_index = add_special_tokens(bertTokenizer,tokens_index)
 
-  tok12 = sentencepieceTokenizer(test_ko_str)
-  tok1 =bertVocab(tok12)
-  print('tok1: ',tok1)
-  tok2 = add_special_tokens(bertTokenizer,tok1)
-  print('tok2: ',tok2)
-  # print('tok1 index: ',bertVocab(tok1))
-
-  tok2 = torch.tensor(tok2, dtype=torch.long)
-
-  decode_input = tokenizer.decode(tok)
-  print('decode_input: ',decode_input)
-
+  input_tensor = torch.tensor(added_specialtokens_index)
   # inputs, labels = orgin_mask_tokens(tokenizer,tok.unsqueeze(0), pad=True)
-  inputs, labels = kobert_mask_tokens(bertTokenizer, tok2.unsqueeze(0), pad=True)
-  # print('inputs: ',inputs)
-  # print('label: ',labels)
+  inputs, labels = kobert_mask_tokens(bertTokenizer, input_tensor.unsqueeze(0), pad=True)
 
-  decode_input= tokenizer.decode(inputs.squeeze(0))
-  # print('decode_input: ',decode_input)
+  print('inputs index2token: ',bertVocab.to_tokens(inputs.squeeze().tolist()))
+  print('labels index2token: ',bertVocab.to_tokens(labels.squeeze().tolist()))
 
