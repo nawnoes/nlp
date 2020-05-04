@@ -7,9 +7,9 @@ def load_json(filename):
   with open(filename, 'r') as fd:
     parser = ijson.parse(fd)
     for prefix, event, value in parser:
-      if prefix.endswith('.title'):
-        print("\nTITLE: %s" % value)
-      elif prefix.endswith('.text'):
+      # if prefix.endswith('.title'):
+      #   print("\nTITLE: %s" % value)
+      if prefix.endswith('.text'):
         print("\nCONTENT: %s" % value)
 
 if __name__=='__main__':
