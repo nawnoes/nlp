@@ -267,6 +267,15 @@ if __name__ == '__main__':
   args = parser.parse_args()
 
   if not os.path.isfile(args.output):
+    """
+    pretrain 데이터 생성
+    args:
+    in_file = "<path of data>/kowiki.txt"
+    out_file = "<path of data>/kowiki_bert_{}.json"
+    count = 10
+    n_seq = 256
+    mask_prob = 0.15
+    """
     make_pretrain_data(args)
   else:
     print(f"{args.output} exists")
