@@ -1,5 +1,5 @@
 # ReforBERT
-리포머를 이용한 BERT 언어모델 pytorch
+Transformer를 개선한 Reformer를 이용한 BERT 언어모델 pytorch 버전
 
 ##  Introduction
 2020년 트랜스포머를 개선한 리포머 발표. 
@@ -9,9 +9,13 @@ BERT나 GPT2와 같은 큰 모델들은 많은 컴퓨팅과 메모리를 필요�
 리포머를 이용한 **BERT**를 만들고 colab을 통해 LM을 학습해 다양한 downstream task에 이용을 목표로 한다.  
   
 ## Architecture
-### Data
+### 1. Data
 한국어 위키 및 나무 위키 사용 예정
-
+#### Pretrain
+한국어 위키 덤프
+##### 전처리
+  1. 위키 미러에서 덤프 다운로드
+  2. sentencepiece를 이용해 8000개의 vocab 생성 
 ### Vocab 및 Tokenizer
 기존 KoBERT의 Vocab 및 SentencePiece Tokenizer 사용 예정.
 
@@ -28,10 +32,13 @@ Out[41]: '[SEP]'
 >>> sentencepieceTokenizer.tokens[4]
 Out[42]: '[MASK]'
 ```
-### Model
-Reformer-pytorch의 ReformerLmM 사용.
+### 2. Model
+Reformer-pytorch의 ReformerLM 사용.
 
-### Hyperparmeter
+### 3. Hyperparmeter
+
+### 4. Pretrain
+기본 BERT의 Masked Language Model과 Next Sentence Prediction을 사전학습에 사용.
 
   
 **KoBERT Pretrain Config**
@@ -68,3 +75,4 @@ Seonghwan Kim
 # Reference
 [lucidrains/reformer-pytorch](https://github.com/lucidrains/reformer-pytorch)  
 [SKTBrain/KoBERT](https://github.com/SKTBrain/KoBERT)
+[BERT(Bidirectional Encoder Representations from Transformers) 구현하기 (1/2)](https://paul-hyun.github.io/bert-01/)

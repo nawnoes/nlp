@@ -1,9 +1,11 @@
 from ReforBERT.util.common import download
 from ReforBERT.util.tokenizer import tokenizer
+
+import sentencepiece as spm
 import gluonnlp as nlp
 
 
-# download vocab
+# koBERT vocab download
 def koBertVocab():
   cachedir='~/reforBert/'
 
@@ -15,3 +17,10 @@ def koBertVocab():
   vocab_b_obj = nlp.vocab.BERTVocab.from_sentencepiece(vocab_file,
                                                        padding_token='[PAD]')
   return vocab_b_obj
+
+
+# paul-hyun vocab loader
+def load_vocab(file):
+  vocab = spm.SentencePieceProcessor()
+  vocab.load(file)
+  return vocab

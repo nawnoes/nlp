@@ -86,6 +86,9 @@ def pretrin_collate_fn(inputs):
 
 
 """ pretrain 데이터 로더 """
-batch_size = 128
-dataset = PretrainDataSet(vocab, f"{data_dir}/kowiki_bert_0.json")
-train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=pretrin_collate_fn)
+def pretrain_data_loader(vocab, data_dir, batch_size = 128):
+  dataset = PretrainDataSet(vocab, f"{data_dir}/kowiki_bert_0.json")
+  data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=pretrin_collate_fn)
+
+  return data_loader
+

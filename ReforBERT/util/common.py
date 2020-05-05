@@ -3,6 +3,7 @@ import os
 import sys
 import requests
 import hashlib
+import json
 
 import torch
 import torch.nn.functional as F
@@ -126,3 +127,15 @@ def download(url, filename, chksum, cachedir='./cache/'):
   assert chksum == hashlib.md5(open(
     file_path, 'rb').read()).hexdigest()[:10], 'corrupted file!'
   return file_path
+
+
+""" configuration json을 읽어들이는 class """
+class Config(dict):
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+
+    @classmethod
+    def load(cls, file):
+        with open(file, 'r') as f:
+            config = json.loads(f.read())
+            return Config(config)
