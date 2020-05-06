@@ -16,9 +16,10 @@ import wget
 import torch
 import torch.nn as nn
 import torch.distributed as dist
+from torch.utils.data import dataloader
 
-from ReforBERT.reformer import Reformer, ReformerLM
-from ReforBERT.dataloader.kowiki import pretrain_data_loader
+from ReforBERT.reformer import Reformer, ReformerLM,
+from ReforBERT.dataloader.kowiki import PretrainDataSet, pretrin_collate_fn
 from ReforBERT.util.vocab import load_vocab
 from ReforBERT.util.common import Config
 
@@ -46,13 +47,13 @@ def destroy_process_group():
     dist.destroy_process_group()
 
 """ 모델 epoch 학습 """
-def train_epoch(config, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader):
+def train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader):
     losses = []
     model.train()
 
     with tqdm(total=len(train_loader), desc=f"Train({epoch})") as pbar:
         for i, value in enumerate(train_loader):
-            labels_cls, labels_lm, inputs, segments = map(lambda v: v.to(config.device), value)
+            labels_cls, labels_lm, inputs, segments = map(lambda v: v.to(device), value)
 
             optimizer.zero_grad()
             outputs = model(inputs, segments)
@@ -77,10 +78,12 @@ def train_epoch(config, epoch, model, criterion_lm, criterion_cls, optimizer, tr
 if __name__ == '__main__':
     # Data 및 Vocab 경로
     data_path = "../../Data/kowiki"
+    checkpoint_path ="../checkpoint"
     vocab_path = "../../Data/kowiki/kowiki.model"
 
     vocab = spm.SentencePieceProcessor()
     vocab = load_vocab(vocab_path)
+
 
     learning_rate = 5e-5 # Learning Rate
     n_epoch = 20         # Num of Epoch
@@ -89,11 +92,15 @@ if __name__ == '__main__':
     max_seq_len = 512     # 최대 입력 길이
     embedding_size = 768  # 임베딩 사이
     batch_size = 128      # 학습 시 배치 크기
+    device ="cpu"         # cpu or cuda
 
+    count =10             # 데이터 분할 크기
 
-
-    # 학습을 위한 데이터 로더
-    train_data_loader = pretrain_data_loader(vocab, data_path, batch_size)
+    # pretrain 데이터 로더
+    batch_size = 128
+    dataset = PretrainDataSet(vocab, f"{data_path}/kowiki_bert_test.json")
+    train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
+                                               collate_fn=pretrin_collate_fn)
 
     # Refomer Language Model 생성
     model = ReformerLM(
@@ -105,7 +112,7 @@ if __name__ == '__main__':
         causal=True
     )
 
-    save_pretrain = f"{data_path}/save_bert_pretrain.pth"
+    save_pretrain = f"{checkpoint_path}/save_reforBERT_pretrain.pth"
 
     best_epoch, best_loss = 0, 0
     if os.path.isfile(save_pretrain):
@@ -113,7 +120,7 @@ if __name__ == '__main__':
         print(f"load pretrain from: {save_pretrain}, epoch={best_epoch}, loss={best_loss}")
         best_epoch += 1
 
-    model.to(config.device)
+    model.to(device)
 
     criterion_lm = torch.nn.CrossEntropyLoss(ignore_index=-1, reduction='mean')
     criterion_cls = torch.nn.CrossEntropyLoss()
@@ -125,10 +132,32 @@ if __name__ == '__main__':
         epoch = step + offset
         if 0 < step:
             del train_loader
-            dataset = PretrainDataSet(vocab, f"{data_dir}/kowiki_bert_{epoch % count}.json")
-            train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=pretrin_collate_fn)
-
-        loss = train_epoch(config, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader)
+            dataset = PretrainDataSet(vocab, f"{data_path}/kowiki_bert_{epoch % count}.json")
+            train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
+                                                       collate_fn=pretrin_collate_fn)
+        loss = train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader)
         losses.append(loss)
         model.bert.save(epoch, loss, save_pretrain)
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'loss': loss,
+        }, save_pretrain)
+
+    # data
+    data = {
+        "loss": losses
+    }
+    df = pd.DataFrame(data)
+    display(df)
+
+    # graph
+    plt.figure(figsize=[12, 4])
+    plt.plot(losses, label="loss")
+    plt.legend()
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.show()
+
 
