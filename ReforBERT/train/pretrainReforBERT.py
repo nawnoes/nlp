@@ -18,7 +18,7 @@ import torch.nn as nn
 import torch.distributed as dist
 from torch.utils.data import dataloader
 
-from ReforBERT.reformer import Reformer, ReformerLM,
+from ReforBERT.reformer.model import ReforBertLM
 from ReforBERT.dataloader.kowiki import PretrainDataSet, pretrin_collate_fn
 from ReforBERT.util.vocab import load_vocab
 from ReforBERT.util.common import Config
@@ -84,6 +84,7 @@ if __name__ == '__main__':
     vocab = spm.SentencePieceProcessor()
     vocab = load_vocab(vocab_path)
 
+    print(vocab.pad_id())
 
     learning_rate = 5e-5 # Learning Rate
     n_epoch = 20         # Num of Epoch
@@ -103,7 +104,7 @@ if __name__ == '__main__':
                                                collate_fn=pretrin_collate_fn)
 
     # Refomer Language Model 생성
-    model = ReformerLM(
+    model = ReforBertLM(
         num_tokens=vocab_size,
         dim=embedding_size,
         depth=6,
