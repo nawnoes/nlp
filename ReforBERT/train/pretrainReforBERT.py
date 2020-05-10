@@ -18,7 +18,7 @@ import torch.nn as nn
 import torch.distributed as dist
 from torch.utils.data import dataloader
 
-from ReforBERT.reformer.model import ReforBertLM
+from ReforBERT.reformer.model import ReforBertLM,ReformerLM
 from ReforBERT.dataloader.kowiki import PretrainDataSet, pretrin_collate_fn
 from ReforBERT.util.vocab import load_vocab
 from ReforBERT.util.common import Config
@@ -61,6 +61,7 @@ def train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, tr
 
             loss_cls = criterion_cls(logits_cls, labels_cls)
             loss_lm = criterion_lm(logits_lm.view(-1, logits_lm.size(2)), labels_lm.view(-1))
+
             loss = loss_cls + loss_lm
 
             loss_val = loss_lm.item()
