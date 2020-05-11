@@ -47,7 +47,7 @@ def destroy_process_group():
     dist.destroy_process_group()
 
 """ 모델 epoch 학습 """
-def train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader):
+def train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader, train_save_step):
     losses = []
     model.train()
 
@@ -70,6 +70,14 @@ def train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, tr
             loss.backward()
             optimizer.step()
 
+            if i % train_save_step == 0:
+                torch.save({
+                    'epoch': epoch,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'loss': loss,
+                }, save_pretrain)
+
             pbar.update(1)
             pbar.set_postfix_str(f"Loss: {loss_val:.3f} ({np.mean(losses):.3f})")
     return np.mean(losses)
@@ -80,6 +88,7 @@ if __name__ == '__main__':
     # Data 및 Vocab 경로
     data_path = "../../Data/kowiki"
     checkpoint_path ="../checkpoint"
+    save_pretrain = f"{checkpoint_path}/save_reforBERT_pretrain.pth"
     vocab_path = "../../Data/kowiki/kowiki.model"
 
     vocab = spm.SentencePieceProcessor()
@@ -97,7 +106,7 @@ if __name__ == '__main__':
     device ="cpu"         # cpu or cuda
 
     count =10             # 데이터 분할 크기
-
+    train_save_step = 100 # 학습 저장 주기
     # pretrain 데이터 로더
     batch_size = 2#128
     dataset = PretrainDataSet(vocab, f"{data_path}/kowiki_bert_test.json")
@@ -113,20 +122,23 @@ if __name__ == '__main__':
         max_seq_len=max_seq_len,
         causal=True
     )
-
-    save_pretrain = f"{checkpoint_path}/save_reforBERT_pretrain.pth"
-
-    best_epoch, best_loss = 0, 0
-    if os.path.isfile(save_pretrain):
-        # best_epoch, best_loss = model.bert.load(save_pretrain)
-        print(f"load pretrain from: {save_pretrain}, epoch={best_epoch}, loss={best_loss}")
-        # best_epoch += 1
-
     model.to(device)
 
     criterion_lm = torch.nn.CrossEntropyLoss(ignore_index=-1, reduction='mean')
     criterion_cls = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+    best_epoch, best_loss = 0, 0
+    if os.path.isfile(save_pretrain):
+        checkpoint = torch.load(save_pretrain)
+        best_epoch = checkpoint['epoch']
+        best_loss = checkpoint['loss']
+        # best_epoch, best_loss = model.bert.load(save_pretrain)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+        print(f"load pretrain from: {save_pretrain}, epoch={best_epoch}, loss={best_loss}")
+        # best_epoch += 1
 
     losses = []
     offset = best_epoch
@@ -137,15 +149,8 @@ if __name__ == '__main__':
             dataset = PretrainDataSet(vocab, f"{data_path}/kowiki_bert_{epoch % count}.json")
             train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
                                                        collate_fn=pretrin_collate_fn)
-        loss = train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader)
+        loss = train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader, train_save_step)
         losses.append(loss)
-        # model.bert.save(epoch, loss, save_pretrain)
-        torch.save({
-            'epoch': epoch,
-            'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
-            'loss': loss,
-        }, save_pretrain)
 
     # data
     data = {
