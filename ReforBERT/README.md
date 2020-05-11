@@ -33,7 +33,7 @@ BERT나 GPT2와 같은 큰 모델들은 많은 컴퓨팅과 메모리를 필요�
   ``` 
 ### Vocab 및 Tokenizer
 SentencePiece Tokenizer 및 위키로 만든 8007개의 Vocab
-```python
+```
 [PAD]	0
 [UNK]	0
 [BOS]	0
@@ -108,5 +108,5 @@ Seonghwan Kim
 
 # Reference
 [lucidrains/reformer-pytorch](https://github.com/lucidrains/reformer-pytorch)  
+[BERT(Bidirectional Encoder Representations from Transformers) 구현하기 (1/2)](https://paul-hyun.github.io/bert-01/)  
 [SKTBrain/KoBERT](https://github.com/SKTBrain/KoBERT)  
-[BERT(Bidirectional Encoder Representations from Transformers) 구현하기 (1/2)](https://paul-hyun.github.io/bert-01/)
