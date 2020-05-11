@@ -94,21 +94,22 @@ if __name__ == '__main__':
     vocab = spm.SentencePieceProcessor()
     vocab = load_vocab(vocab_path)
 
-    print(vocab.pad_id())
-
-    learning_rate = 5e-5 # Learning Rate
-    n_epoch = 20         # Num of Epoch
+    count = 10            # 학습 데이터 분할 크기 kowiki_bert_{}.json
+    learning_rate = 5e-5  # Learning Rate
+    n_epoch = 20          # Num of Epoch
+    batch_size = 128      # 배치 사이즈
+    device ="cpu"         # cpu or cuda
 
     vocab_size = 8007     # vocab 크기
     max_seq_len = 512     # 최대 입력 길이
     embedding_size = 768  # 임베딩 사이
     batch_size = 128      # 학습 시 배치 크기
-    device ="cpu"         # cpu or cuda
+    depth = 6             # reformer depth
+    heads = 8             # reformer heads
 
-    count =10             # 데이터 분할 크기
     train_save_step = 100 # 학습 저장 주기
+
     # pretrain 데이터 로더
-    batch_size = 2#128
     dataset = PretrainDataSet(vocab, f"{data_path}/kowiki_bert_test.json")
     train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
                                                collate_fn=pretrin_collate_fn)
@@ -117,8 +118,8 @@ if __name__ == '__main__':
     model = ReforBertLM(
         num_tokens=vocab_size,
         dim=embedding_size,
-        depth=6,
-        heads=8,
+        depth=depth,
+        heads=heads,
         max_seq_len=max_seq_len,
         causal=True
     )
