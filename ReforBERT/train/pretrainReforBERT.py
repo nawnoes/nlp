@@ -47,12 +47,14 @@ def destroy_process_group():
     dist.destroy_process_group()
 
 """ 모델 epoch 학습 """
-def train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader, train_save_step):
+def train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader, train_save_step, train_step = 0):
     losses = []
+    train_start_index = train_step+1 if train_step != 0 else 0
+    total_train_step = len(train_loader) - train_start_index
     model.train()
 
-    with tqdm(total=len(train_loader), desc=f"Train({epoch})") as pbar:
-        for i, value in enumerate(train_loader):
+    with tqdm(total= total_train_step, desc=f"Train({epoch})") as pbar:
+        for i, value in enumerate(train_loader, train_start_index):
             labels_cls, labels_lm, inputs, segments = map(lambda v: v.to(device), value)
 
             optimizer.zero_grad()
@@ -72,10 +74,12 @@ def train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, tr
 
             if i % train_save_step == 0:
                 torch.save({
-                    'epoch': epoch,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'loss': loss,
+                    'epoch': epoch,                                   # 현재 학습 epoch
+                    'model_state_dict': model.state_dict(),           # 모델 저장
+                    'optimizer_state_dict': optimizer.state_dict(),   # 옵티마이저 저장
+                    'loss': loss,                                     # Loss 저장
+                    'train_step': i,                                  # 현재 진행한 학습
+                    'total_train_step': len(train_loader)             # 현재 epoch에 학습 할 총 train step
                 }, save_pretrain)
 
             pbar.update(1)
@@ -129,12 +133,14 @@ if __name__ == '__main__':
     criterion_cls = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    best_epoch, best_loss = 0, 0
+    best_epoch, best_loss, train_step = 0, 0, 0
     if os.path.isfile(save_pretrain):
         checkpoint = torch.load(save_pretrain)
         best_epoch = checkpoint['epoch']
         best_loss = checkpoint['loss']
-        # best_epoch, best_loss = model.bert.load(save_pretrain)
+        train_step =  checkpoint['train_step']
+        total_train_step =  checkpoint['total_train_step']
+
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
@@ -150,7 +156,7 @@ if __name__ == '__main__':
             dataset = PretrainDataSet(vocab, f"{data_path}/kowiki_bert_{epoch % count}.json")
             train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
                                                        collate_fn=pretrin_collate_fn)
-        loss = train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader, train_save_step)
+        loss = train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader, train_save_step, train_step)
         losses.append(loss)
 
     # data
