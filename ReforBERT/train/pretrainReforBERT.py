@@ -55,6 +55,16 @@ def train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, tr
 
     with tqdm(total= total_train_step, desc=f"Train({epoch})") as pbar:
         for i, value in enumerate(train_loader, train_start_index):
+            if i >= total_train_step:
+                torch.save({
+                    'epoch': epoch,  # 현재 학습 epoch
+                    'model_state_dict': model.state_dict(),  # 모델 저장
+                    'optimizer_state_dict': optimizer.state_dict(),  # 옵티마이저 저장
+                    'loss': loss,  # Loss 저장
+                    'train_step': i-1,  # 현재 진행한 학습
+                    'total_train_step': len(train_loader)  # 현재 epoch에 학습 할 총 train step
+                }, save_pretrain)
+                break
             labels_cls, labels_lm, inputs, segments = map(lambda v: v.to(device), value)
 
             optimizer.zero_grad()
