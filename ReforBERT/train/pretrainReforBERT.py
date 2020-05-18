@@ -57,12 +57,12 @@ def train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, tr
         for i, value in enumerate(train_loader, train_start_index):
             if i >= total_train_step:
                 torch.save({
-                    'epoch': epoch,  # 현재 학습 epoch
+                    'epoch': epoch+1,  # 현재 학습 epoch
                     'model_state_dict': model.state_dict(),  # 모델 저장
                     'optimizer_state_dict': optimizer.state_dict(),  # 옵티마이저 저장
                     'loss': loss,  # Loss 저장
-                    'train_step': i-1,  # 현재 진행한 학습
-                    'total_train_step': len(train_loader)  # 현재 epoch에 학습 할 총 train step
+                    'train_step': 0,  # 현재 진행한 학습
+                    'total_train_step': 0 # 현재 epoch에 학습 할 총 train step
                 }, save_pretrain)
                 break
             labels_cls, labels_lm, inputs, segments = map(lambda v: v.to(device), value)
@@ -166,6 +166,8 @@ if __name__ == '__main__':
             dataset = PretrainDataSet(vocab, f"{data_path}/kowiki_bert_{epoch % count}.json")
             train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
                                                        collate_fn=pretrin_collate_fn)
+            train_step = 0
+            total_train_step = 0
         loss = train_epoch(device, epoch, model, criterion_lm, criterion_cls, optimizer, train_loader, train_save_step, train_step)
         losses.append(loss)
 
